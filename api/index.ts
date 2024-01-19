@@ -1,4 +1,4 @@
-const express = require('express');
+import express from 'express';
 const app = express();
 const port = 8000;
 const Vigenere = require('caesar-salad').Vigenere;
