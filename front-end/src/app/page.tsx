@@ -1,12 +1,13 @@
 'use client';
 import styles from './page.module.css'
 import axiosApi from "@/axiosApi";
-import {useState} from "react";
-import {useMutation, useQuery, useQueryClient, UseQueryResult} from "@tanstack/react-query";
-import {act} from "react-dom/test-utils";
+import React, {useState} from "react";
+import {useMutation} from "@tanstack/react-query";
+import {Alert, Button, CircularProgress, TextField} from "@mui/material";
 
 const Home = () => {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [form, setForm] = useState({
     decode: '',
     encode: '',
@@ -15,37 +16,49 @@ const Home = () => {
 
   const encodeMessageReq  = useMutation( {
     mutationFn: async (formData: {[key: string]: string}) => {
-      setLoading(true);
-      try {
-        const response = await axiosApi.post('/encode/' + formData.encode, {password: formData.password});
-        setForm((prev) => ({
-          ...prev,
-          decode: response.data,
-          encode: '',
-        }));
-      } catch (e) {
-        console.error(e);
-      }
+      if (formData.password.trim().length > 0 && formData.encode.trim().length > 0) {
+        setLoading(true);
+        try {
+          const response = await axiosApi.post('/encode/' + formData.encode, {password: formData.password});
+          setForm((prev) => ({
+            ...prev,
+            decode: response.data,
+            encode: '',
+          }));
+        } catch (e) {
+          console.error(e);
+        }
 
-      setLoading(false);
+        setLoading(false);
+        setError(false);
+      } else {
+        setError(true);
+      }
     }
   });
 
   const decodeMessageReq  = useMutation( {
     mutationFn: async (formData: {[key: string]: string}) => {
-      setLoading(true);
-      try {
-        const response = await axiosApi.post('/decode/' + formData.decode, {password: formData.password});
-        setForm((prev) => ({
-          ...prev,
-          encode: response.data,
-          decode: '',
-        }));
-      }catch (e) {
-        console.error(e);
+
+      if (formData.password.trim().length > 0 && formData.decode.trim().length > 0) {
+        setLoading(true);
+        try {
+          const response = await axiosApi.post('/decode/' + formData.decode, {password: formData.password});
+          setForm((prev) => ({
+            ...prev,
+            encode: response.data,
+            decode: '',
+          }));
+        }catch (e) {
+          console.error(e);
+        }
+
+        setLoading(false);
+        setError(false);
+      } else {
+        setError(true);
       }
 
-      setLoading(false);
     }
   });
 
@@ -70,16 +83,49 @@ const Home = () => {
 
   return (
     <main className={styles.main}>
-      {loading ? <p>Loading</p> :
+      {loading ? <CircularProgress/> :
 
           <form>
-            <input type="text" name="encode" value={form.encode} onChange={changeForm}/>
-            <button type="button" onClick={() => handleClick('encode')}>Encode</button>
+            <TextField
+                label="Encode"
+                variant="filled"
+                name="encode"
+                value={form.encode}
+                onChange={changeForm}
+            />
+
+            <Button
+                variant="contained"
+                type="button"
+                disabled={form.decode.trim().length > 0}
+                onClick={() => handleClick('encode')}
+            >Encode</Button>
+
             <hr/>
-            Password: <input type="password" name="password" value={form.password} onChange={changeForm}/>
+            {error ? <Alert severity="error">Password must be field. Also text filed must be field</Alert> : null}
+            <TextField
+                variant="standard"
+                label="Password"
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={changeForm}
+            />
+
             <hr/>
-            <input type="text" name="decode" value={form.decode} onChange={changeForm}/>
-            <button type="button" onClick={() => handleClick('decode')}>Decode</button>
+            <TextField
+                label="Decode"
+                variant="filled"
+                name="decode"
+                value={form.decode}
+                onChange={changeForm}
+            />
+            <Button
+                disabled={form.decode.trim().length === 0}
+                variant="contained"
+                type="button"
+                onClick={() => handleClick('decode')}
+            >Decode</Button>
           </form>
       }
 
