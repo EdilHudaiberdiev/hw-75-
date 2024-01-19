@@ -1,19 +1,22 @@
 import express from 'express';
 const app = express();
+const cors = require('cors');
 const port = 8000;
 const Vigenere = require('caesar-salad').Vigenere;
-const password = '2835';
+
+app.use(express.json());
+app.use(cors());
 
 app.get('/', (req, res) => {
     res.send('Task 2');
 });
 
-app.get('/encode/:name', (req, res) => {
-    res.send(Vigenere.Cipher(password).crypt(req.params.name));
+app.post('/encode/:name', (req, res) => {
+    res.send(Vigenere.Cipher(req.body.password).crypt(req.params.name));
 });
 
-app.get('/decode/:name', (req, res) => {
-    res.send(Vigenere.Decipher(password).crypt(req.params.name));
+app.post('/decode/:name', (req, res) => {
+    res.send(Vigenere.Decipher(req.body.password).crypt(req.params.name));
 });
 
 app.listen(port, () => {
